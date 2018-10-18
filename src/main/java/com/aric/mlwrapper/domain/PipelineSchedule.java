@@ -13,6 +13,7 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
 @JsonTypeInfo(use = NAME, include = PROPERTY)
 @JsonSubTypes({
   @JsonSubTypes.Type(value=TimePipelineSchedule.class, name = "TimePipelineSchedule"),
+  @JsonSubTypes.Type(value=TimePipelineSchedule.class, name = "DefaultPipelineSchedule"),
   @JsonSubTypes.Type(value=SizePipelineSchedule.class, name = "SizePipelineSchedule")
 })
 public interface PipelineSchedule {

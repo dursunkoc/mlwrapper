@@ -4,17 +4,19 @@ import org.springframework.stereotype.Service;
 
 import com.aric.mlwrapper.domain.Pipeline;
 
+/**
+ * @author TTDKOC
+ *
+ */
 @Service
 public class PipelineService {
 
 	public Pipeline getPipeline(String name) {
 		// TODO Auto-generated method stub
-		return new Pipeline(name);
+		return new Pipeline(name, "", "run.sh");
 	}
 
 	public void startTrainingPipeline(Pipeline pipeline) {
-		// TODO Auto-generated method stub
-		
 		//TODO do the scheduling with pipeline.getPipelineSchedule()
 	}
 

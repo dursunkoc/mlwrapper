@@ -26,3 +26,4 @@
 
 .do.*
 mlwrapper.do
+src/main/resources/*.json

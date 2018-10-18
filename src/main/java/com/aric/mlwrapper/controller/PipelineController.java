@@ -33,14 +33,14 @@ public class PipelineController {
 	public HttpEntity<Pipeline> pipeline(@RequestParam(name = "name", required = true) String name) {
 		Pipeline pipeline = pipelineService.getPipeline(name);
 		pipeline.add(linkTo(methodOn(PipelineController.class).pipeline(name)).withSelfRel());
-		return new ResponseEntity<Pipeline>(pipeline, HttpStatus.OK);
+		return new ResponseEntity<>(pipeline, HttpStatus.OK);
 	}
 	
 	@RequestMapping(path = "/", method = RequestMethod.PUT)
 	public HttpEntity<Void> pipelineStart(@RequestParam(name = "name", required = true) String name) {
 		Pipeline pipeline = pipelineService.getPipeline(name);
 		pipelineService.startTrainingPipeline(pipeline);
-		return new ResponseEntity<Void>(HttpStatus.OK);
+		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 }

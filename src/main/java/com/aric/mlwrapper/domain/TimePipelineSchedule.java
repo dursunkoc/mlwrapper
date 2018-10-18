@@ -2,6 +2,8 @@ package com.aric.mlwrapper.domain;
 
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.core.style.ToStringCreator;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -28,6 +30,14 @@ public class TimePipelineSchedule implements PipelineSchedule{
 	
 	public TimeUnit getTimeUnit() {
 		return timeUnit;
+	}
+	
+	@Override
+	public String toString() {
+		return new ToStringCreator(this)
+				.append("refreshTime", refreshTime)
+				.append("timeUnit", timeUnit)
+				.toString();
 	}
 
 }
