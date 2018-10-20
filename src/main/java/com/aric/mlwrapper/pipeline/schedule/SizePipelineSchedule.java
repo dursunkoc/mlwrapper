@@ -1,4 +1,4 @@
-package com.aric.mlwrapper.domain;
+package com.aric.mlwrapper.pipeline.schedule;
 
 import org.springframework.core.style.ToStringCreator;
 

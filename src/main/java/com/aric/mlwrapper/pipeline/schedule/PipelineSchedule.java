@@ -1,4 +1,4 @@
-package com.aric.mlwrapper.domain;
+package com.aric.mlwrapper.pipeline.schedule;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

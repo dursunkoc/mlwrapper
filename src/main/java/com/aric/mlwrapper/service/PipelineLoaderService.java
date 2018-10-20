@@ -1,7 +1,6 @@
 package com.aric.mlwrapper.service;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardWatchEventKinds;
@@ -9,9 +8,7 @@ import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -22,9 +19,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.aric.mlwrapper.domain.Pipeline;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author TTDKOC
  *
@@ -33,17 +27,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class PipelineLoaderService implements InitializingBean {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PipelineLoaderService.class);
 
-	private static final ObjectMapper OM = new ObjectMapper();
-	
-	private final Map<String, Pipeline> pipelines= new HashMap<>();
-
 	@Value("${mlwrapper.deployments}")
 	private String deploymentPathUrl;
+	
+	private Path deploymentPath;
 
 	@Autowired
 	private WatchService deploymentWatch;
-
-	private Path deploymentPath;
+	
+	@Autowired
+	private PipelineService pipelineService;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -51,10 +44,9 @@ public class PipelineLoaderService implements InitializingBean {
 		deploymentPath.register(deploymentWatch, StandardWatchEventKinds.ENTRY_MODIFY,
 				StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE);
 		Arrays.stream(deploymentPath.toFile().listFiles())
-		.map(f->f.toPath())
+		.map(File::toPath)
 		.filter(p->p.toString().endsWith(".json"))
-		.forEach(this::createPipeline);
-		
+		.forEach(pipelineService::createPipeline);
 	}
 
 	@Scheduled(fixedDelay = 2000)
@@ -86,10 +78,10 @@ public class PipelineLoaderService implements InitializingBean {
 		switch (watchEvent.kind().name()) {
 		case "ENTRY_CREATE":
 		case "ENTRY_MODIFY":
-			createPipeline((Path) watchEvent.context());
+			pipelineService.createPipeline((Path) watchEvent.context());
 			break;
 		case "ENTRY_DELETE":
-			dropPipeline((Path) watchEvent.context());
+			pipelineService.dropPipeline((Path) watchEvent.context());
 			break;
 		default:
 			unknownEvent(watchEvent);
@@ -102,32 +94,4 @@ public class PipelineLoaderService implements InitializingBean {
 		String pipelineFile = deploymentPath.resolve(p).toString();
 		LOGGER.error("Unknown event {} for {}", watchEvent.kind(), pipelineFile);
 	}
-
-	private void createPipeline(Path p) {
-		String pipelineFile = deploymentPath.resolve(p).toString();
-		LOGGER.debug("Loading {}", pipelineFile);
-		if(pipelines.containsKey(pipelineFile)) {
-			LOGGER.info("{} already exists!!", pipelineFile);
-			dropPipeline(p);
-		}
-		try {
-			File file = deploymentPath.resolve(p).toFile();
-			Pipeline pipeline = OM.readValue(file, Pipeline.class);
-			//TODO start pipeline
-			pipelines.put(pipelineFile, pipeline);
-			LOGGER.info("Loaded {}", pipeline);
-		} catch (IOException e) {
-			LOGGER.error("Error processing {}.\n {}", pipelineFile, e);
-		}
-	}
-
-	private void dropPipeline(Path p) {
-		String pipelineFile = deploymentPath.resolve(p).toString();
-		LOGGER.debug("Unloading {}", pipelineFile);
-		Pipeline removedPipeline = pipelines.remove(pipelineFile);
-		//TODO stop pipeline
-		LOGGER.info("Unloaded {}", removedPipeline);
-		
-	}
-
 }
