@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import com.aric.mlwrapper.pipeline.Pipeline;
 import com.aric.mlwrapper.pipeline.PipelineStatus;
-import com.aric.mlwrapper.pipeline.RunnablePipeline;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -38,20 +37,21 @@ public class PipelineService {
 
 	public void startPipeline(Pipeline pipeline) {
 		LOGGER.debug("Starting {}", pipeline);
-		pipeline.setPipelineStatus(PipelineStatus.STARTED);
+		pipeline.setPipelineStatus(PipelineStatus.WAITING);
 	}
 	
-	public Stream<Pipeline> getStartedPipelines(){
-		return pipelines.values().stream().filter(Pipeline::isStarted);
+	public Stream<Pipeline> getWaitingPipelines(){
+		return pipelines.values().stream().filter(Pipeline::isWaiting);
+	}
+	
+	public Stream<Pipeline> getTrainingPipelines() {
+		return pipelines.values().stream().filter(Pipeline::isTraining);
+	}
+	
+	public Stream<Pipeline> getTerminatingPipelines() {
+		return pipelines.values().stream().filter(Pipeline::isTerminating);
 	}
 
-	public void stopPipeline(Pipeline pipeline) {
-		Process process = pipeline.getProcess();
-		while (process.isAlive()) {
-			// FIXME avoid infinite Loop
-			process.destroy();
-		}
-	}
 
 	public void createPipeline(Path path) {
 		Path pipelineFile = deploymentPath.resolve(path);
@@ -83,5 +83,24 @@ public class PipelineService {
 		LOGGER.info("Unloaded {}", removedPipeline);
 
 	}
+	
+	public void handleCompleted(Pipeline pipeline) {
+		if(pipeline.isProcessCompleted()) {
+			if(pipeline.isSustainable()) {
+				pipeline.setPipelineStatus(PipelineStatus.WAITING);
+				pipeline.getScheduleInfo().complete();				
+			}else{
+				stopPipeline(pipeline);
+			}
+
+		}
+	}
+	
+	public void stopPipeline(Pipeline pipeline) {
+		pipeline.killProcess();
+		pipeline.setPipelineStatus(PipelineStatus.STOPPED);
+		pipeline.getScheduleInfo().terminate();		
+	}
+
 
 }

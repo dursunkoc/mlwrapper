@@ -17,6 +17,10 @@ public class RunnablePipeline implements Runnable{
 		this.pipeline = pipeline;
 	}
 	
+	public static final RunnablePipeline fromPipeline(final Pipeline pipeline) {
+		return new RunnablePipeline(pipeline);
+	}
+	
 	@Override
 	public void run() {
 		try {
